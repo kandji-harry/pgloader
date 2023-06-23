@@ -19,23 +19,25 @@ from pg_class c
          left join pg_extension e on refobjid = e.oid
          left join pg_enum enum on enum.enumtypid = t.oid
 
-where nt.nspname !~ '^pg_' and nt.nspname <> 'information_schema'
-  and n.nspname !~ '^pg_' and n.nspname <> 'information_schema'
+where nt.nspname !~~ '^pg_' and nt.nspname <> 'information_schema'
+  and n.nspname !~~ '^pg_' and n.nspname <> 'information_schema'
   and c.relkind in ('r', 'f', 'p')
-  and
-    (   t.typrelid = 0
-        or
-        (select c.relkind = 'c'
-         from pg_class c
-         where c.oid = t.typrelid)
-        )
-  and not exists
-    (
-        select 1
-        from pg_type el
-        where el.oid = t.typelem
-          and el.typarray = t.oid
-    )
+    ~:[~*~;and (~{~a~^~&~10t or ~})~]
+           ~:[~*~;and (~{~a~^~&~10t and ~})~]
+         and
+           (   t.typrelid = 0
+            or
+               (select c.relkind = 'c'
+                 from pg_class c
+                where c.oid = t.typrelid)
+           )
+           and not exists
+             (
+                select 1
+                  from pg_type el
+                 where el.oid = t.typelem
+                   and el.typarray = t.oid
+              )
 
 group by nt.nspname, extname, typname, enumtypid
 order by nt.nspname, extname, typname, enumtypid;
